@@ -1,5 +1,5 @@
-module github.com/alexliesenfeld/go-swagger-ui
+module github.com/Red-Sock/go-swagger-ui
 
-go 1.18
+go 1.23.3
 
 require gopkg.in/yaml.v3 v3.0.1
