@@ -41,6 +41,10 @@ func NewHandler(opts ...Option) http.HandlerFunc {
 	cfg := config.UiConfig{
 		TtmlTitle: "Swagger UI",
 		Plugins:   map[config.Plugin]struct{}{},
+		DocExpansion: config.Value[config.DocExpansion]{
+			IsSet: true,
+			Value: DocExpansionList,
+		},
 	}
 
 	for idx := range opts {

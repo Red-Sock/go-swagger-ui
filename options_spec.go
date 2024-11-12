@@ -11,7 +11,7 @@ import (
 func WithSpec(value []byte) Option {
 	return func(cfg *config.UiConfig) {
 		if isSpecSet(cfg) {
-			panic("Spec already set")
+			return
 		}
 
 		cfg.Spec = value
@@ -23,8 +23,10 @@ func WithSpec(value []byte) Option {
 func WithSpecURL(value string) Option {
 	return func(cfg *config.UiConfig) {
 		if isSpecSet(cfg) {
-			panic("Spec already set")
+			return
 		}
+
+		WithLayout(LayoutBaseLayout)(cfg)
 
 		cfg.Url = config.Value[string]{
 			IsSet: true,
@@ -36,19 +38,22 @@ func WithSpecURL(value string) Option {
 type SpecURL config.SpecURL
 
 // WithSpecURLs sets the URLs array to multiple API definitions that are used by Topbar plugin.
-// Panics if used along with WithSpec, WithSpecURL, WithSpecFilePath
+// Ignored if other spec option is already set
 func WithSpecURLs(primary string, urls []SpecURL) Option {
 	return func(cfg *config.UiConfig) {
 		if isSpecSet(cfg) {
-			panic("Spec already set")
+			return
 		}
 
 		cfg.Plugins[TopBarPlugin] = struct{}{}
+
+		WithLayout(LayoutStandaloneLayout)(cfg)
 
 		cfg.Urls = make([]config.SpecURL, len(urls))
 		for i, url := range urls {
 			cfg.Urls[i] = config.SpecURL(url)
 		}
+
 		if len(primary) > 0 {
 			cfg.UrlsPrimary = config.Value[string]{
 				IsSet: true,
@@ -66,7 +71,7 @@ func WithSpecURLs(primary string, urls []SpecURL) Option {
 func WithSpecFilePath(path string) Option {
 	return func(cfg *config.UiConfig) {
 		if isSpecSet(cfg) {
-			panic("Spec already set")
+			return
 		}
 
 		cfg.SpecFilePath = path

@@ -12,14 +12,14 @@ import (
 )
 
 var (
-	//go:embed swagger-initializer.js
+	//go:embed swagger-initializer.js.pattern
 	swaggerInitializerTemplatesFS string
 
 	swaggerInitializerTemplate = template.Must(template.New("swagger-initializer.js").Parse(swaggerInitializerTemplatesFS))
 )
 
 type SwaggerInitializer struct {
-	Plugins    string
+	Plugins    []string
 	ConfigURL  string
 	Spec       string
 	URL        string
@@ -82,7 +82,7 @@ func (SwaggerInitializer) Generate(w io.Writer, cfg config.UiConfig) error {
 		MaxDisplayedTags:         fromIntConfigValue(cfg.MaxDisplayedTags),
 		PrimaryURL:               fromStringConfigValue(cfg.UrlsPrimary),
 		URLs:                     urlsAsBase64EncodedJSON,
-		Plugins:                  strings.Join(fromMapToArray(cfg.Plugins), ","),
+		Plugins:                  fromMapToArray(cfg.Plugins),
 	}
 
 	return swaggerInitializerTemplate.Execute(w, args)
