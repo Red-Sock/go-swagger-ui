@@ -3,12 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	swaggerui "github.com/alexliesenfeld/go-swagger-ui"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os/exec"
 	"runtime"
+
+	swaggerui "github.com/Red-Sock/go-swagger-ui"
 )
 
 type programArguments struct {

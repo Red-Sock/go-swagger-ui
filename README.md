@@ -18,7 +18,7 @@ to serve it.
 To install the `go-swagger-ui` package, use the following command:
 
 ```bash
-go get github.com/alexliesenfeld/go-swagger-ui
+go get github.com/Red-Sock/go-swagger-ui
 ```
 
 ## Usage
@@ -27,7 +27,7 @@ package main
 
 import (
 	"fmt"
-	swaggerui "github.com/alexliesenfeld/go-swagger-ui"
+	swaggerui "github.com/Red-Sock/go-swagger-ui"
 	"log"
 	"net/http"
 )
@@ -52,7 +52,7 @@ func main() {
 Install the CLI application:
 
 ```bash
-go install github.com/alexliesenfeld/go-swagger-ui/cmd/swui@latest
+go install github.com/Red-Sock/go-swagger-ui/cmd/swui@latest
 ```
 
 You can then use the CLI tool to serve OpenAPI spec files in a separate Swagger UI instance in a browser window.

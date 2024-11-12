@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	swaggerui "github.com/alexliesenfeld/go-swagger-ui"
-	"github.com/alexliesenfeld/go-swagger-ui/examples/helpers/swaggers"
+	swaggerui "github.com/Red-Sock/go-swagger-ui"
+	"github.com/Red-Sock/go-swagger-ui/examples/helpers/swaggers"
 )
 
 func main() {

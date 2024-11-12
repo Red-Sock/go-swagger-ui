@@ -3,7 +3,7 @@ package go_swagger_ui
 import (
 	"strings"
 
-	"github.com/alexliesenfeld/go-swagger-ui/internal/config"
+	"github.com/Red-Sock/go-swagger-ui/config"
 )
 
 // Option is a function that takes a pointer to config.UiConfig and modifies it.

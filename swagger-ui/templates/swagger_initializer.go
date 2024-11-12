@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/alexliesenfeld/go-swagger-ui/internal/config"
+	"github.com/Red-Sock/go-swagger-ui/config"
 )
 
 var (

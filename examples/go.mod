@@ -1,9 +1,9 @@
-module github.com/alexliesenfeld/go-swagger-ui/examples
+module github.com/Red-Sock/go-swagger-ui/examples
 
-go 1.22.0
+go 1.23.3
 
 require (
-	github.com/alexliesenfeld/go-swagger-ui v0.0.0
+	github.com/Red-Sock/go-swagger-ui v0.0.0
 	github.com/labstack/echo/v4 v4.11.4
 
 )
@@ -21,4 +21,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/alexliesenfeld/go-swagger-ui => ..
+replace github.com/Red-Sock/go-swagger-ui => ..

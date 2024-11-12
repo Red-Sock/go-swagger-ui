@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/alexliesenfeld/go-swagger-ui/internal/config"
+	"github.com/Red-Sock/go-swagger-ui/config"
 )
 
 func fromStringConfigValue(v config.Value[string]) string {

@@ -1,7 +1,7 @@
 package go_swagger_ui
 
 import (
-	"github.com/alexliesenfeld/go-swagger-ui/internal/config"
+	"github.com/Red-Sock/go-swagger-ui/config"
 )
 
 // WithSpec sets the Spec field of https://github.com/swagger-api/swagger-ui/blob/HEAD/docs/usage/configuration.md..
@@ -35,7 +35,10 @@ func WithSpecURL(value string) Option {
 	}
 }
 
-type SpecURL config.SpecURL
+type SpecURL struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
+}
 
 // WithSpecURLs sets the URLs array to multiple API definitions that are used by Topbar plugin.
 // Ignored if other spec option is already set

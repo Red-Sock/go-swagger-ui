@@ -15,8 +15,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/alexliesenfeld/go-swagger-ui/internal/config"
-	"github.com/alexliesenfeld/go-swagger-ui/swagger-ui/templates"
+	"github.com/Red-Sock/go-swagger-ui/config"
+	"github.com/Red-Sock/go-swagger-ui/swagger-ui/templates"
 )
 
 //go:embed swagger-ui/dist/*
