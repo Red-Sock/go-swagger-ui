@@ -3,11 +3,8 @@ package go_swagger_ui
 import (
 	"bytes"
 	"embed"
-	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"html/template"
 	"io"
 	"io/fs"
 	"log/slog"
@@ -16,8 +13,10 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strconv"
 	"strings"
+
+	"github.com/alexliesenfeld/go-swagger-ui/internal/config"
+	"github.com/alexliesenfeld/go-swagger-ui/swagger-ui/templates"
 )
 
 //go:embed swagger-ui/dist/*
@@ -26,24 +25,30 @@ var swaggerUIFS embed.FS
 //go:embed swagger-ui/templates/*
 var templatesFS embed.FS
 
-var tplOverrides = map[string]*template.Template{
-	"index.html":             template.Must(template.ParseFS(templatesFS, "swagger-ui/templates/index.html")),
-	"swagger-initializer.js": template.Must(template.ParseFS(templatesFS, "swagger-ui/templates/swagger-initializer.js")),
+//var tplOverrides = map[string]*template.Template{
+//	"index.html":             template.Must(template.ParseFS(templatesFS, "swagger-ui/templates/index.html")),
+//	"swagger-initializer.js": template.Must(template.ParseFS(templatesFS, "swagger-ui/templates/swagger-initializer.js")),
+//}
+
+var tplGenerators = map[string]templates.Generator{
+	"index.html":             templates.Index{},
+	"swagger-initializer.js": templates.SwaggerInitializer{},
 }
 
 var allFilePaths = Must(walkFS("swagger-ui/dist/", &swaggerUIFS, "."))
 
 func NewHandler(opts ...Option) http.HandlerFunc {
-	cfg := uiConfig{
-		htmlTitle: "Swagger UI",
+	cfg := config.UiConfig{
+		TtmlTitle: "Swagger UI",
+		Plugins:   map[config.Plugin]struct{}{},
 	}
 
 	for idx := range opts {
 		opts[idx](&cfg)
 	}
 
-	if len(cfg.spec) > 0 {
-		cfg.spec = Must(yamlOrJSONToJSON(cfg.spec))
+	if len(cfg.Spec) > 0 {
+		cfg.Spec = Must(yamlOrJSONToJSON(cfg.Spec))
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -60,25 +65,27 @@ func NewHandler(opts ...Option) http.HandlerFunc {
 			fileName = "index.html"
 		}
 
-		// We reload the spec file only for the CLI. In a normal production HTTP mode
-		// "specFilePath" should be unset and not used at all. See WithSpecFilePath.
-		if cfg.specFilePath != "" && fileName == "index.html" {
-			newSpecContent, err := readSpecFile(cfg.specFilePath)
+		// We reload the Spec file only for the CLI. In a normal production HTTP mode
+		// "SpecFilePath" should be unset and not used at all. See WithSpecFilePath.
+		if cfg.SpecFilePath != "" && fileName == "index.html" {
+			newSpecContent, err := readSpecFile(cfg.SpecFilePath)
 			if err != nil {
 				slog.Error("error reading Swagger UI file", "err", err.Error())
 				sendError(w, err)
 				return
 			}
 
-			cfg.spec = newSpecContent
+			cfg.Spec = newSpecContent
 		}
 
 		// We either load the requested file from the embed filesystem directly or rendering
 		// a template instead.
 		var responseBody []byte
-		if tpl, ok := tplOverrides[fileName]; ok {
+		if generator, ok := tplGenerators[fileName]; ok {
 			var buf bytes.Buffer
-			if err := replaceVars(&buf, tpl, &cfg); err != nil {
+
+			err := generator.Generate(&buf, cfg)
+			if err != nil {
 				slog.Error("failed to use Swagger UI template", "err", err.Error())
 				sendError(w, err)
 				return
@@ -110,90 +117,6 @@ func sendError(w http.ResponseWriter, err error) {
 	}
 }
 
-func replaceVars(w io.Writer, tpl *template.Template, cfg *uiConfig) error {
-	urlsAsBase64EncodedJSON, err := marshalObject(cfg.urls)
-	if err != nil {
-		return fmt.Errorf("cannot marshal URLs: %w", err)
-	}
-
-	return tpl.Execute(w, struct {
-		BasePath, Spec, URL, HTMLTitle, DocExpansion, DefaultModelExpandDepth, DefaultModelsExpandDepth,
-		DefaultModelRendering, QueryConfigEnabled, SupportedSubmitMethods, DeepLinking,
-		ShowMutatedRequest, ShowExtensions, ShowCommonExtensions, Filter, FilterString,
-		DisplayOperationId, TryItOutEnabled, DisplayRequestDuration, PersistAuthorization, WithCredentials,
-		OAuth2RedirectUrl, Layout, ValidatorURL, MaxDisplayedTags, PrimaryURL, ConfigURL, URLs string
-	}{
-		BasePath:                 cfg.basePath,
-		ConfigURL:                fromStringConfigValue(cfg.configURL),
-		Spec:                     strings.TrimSpace(base64.StdEncoding.EncodeToString(cfg.spec)),
-		URL:                      fromStringConfigValue(cfg.url),
-		HTMLTitle:                cfg.htmlTitle,
-		DocExpansion:             fromDocExpansionConfigValue(cfg.docExpansion),
-		DefaultModelExpandDepth:  fromIntConfigValue(cfg.defaultModelExpandDepth),
-		DefaultModelsExpandDepth: fromIntConfigValue(cfg.defaultModelsExpandDepth),
-		DefaultModelRendering:    fromModelRenderingConfigValue(cfg.defaultModelRendering),
-		QueryConfigEnabled:       fromBoolConfigValue(cfg.queryConfigEnabled),
-		SupportedSubmitMethods:   strings.TrimSpace(strings.Join(cfg.supportedSubmitMethods, ",")),
-		DeepLinking:              fromBoolConfigValue(cfg.deepLinking),
-		ShowMutatedRequest:       fromBoolConfigValue(cfg.showMutatedRequest),
-		ShowExtensions:           fromBoolConfigValue(cfg.showExtensions),
-		ShowCommonExtensions:     fromBoolConfigValue(cfg.showCommonExtensions),
-		Filter:                   fromBoolConfigValue(cfg.filter),
-		FilterString:             fromStringConfigValue(cfg.filterString),
-		DisplayOperationId:       fromBoolConfigValue(cfg.displayOperationID),
-		TryItOutEnabled:          fromBoolConfigValue(cfg.tryItOutEnabled),
-		DisplayRequestDuration:   fromBoolConfigValue(cfg.displayRequestDuration),
-		PersistAuthorization:     fromBoolConfigValue(cfg.persistAuthorization),
-		WithCredentials:          fromBoolConfigValue(cfg.withCredentials),
-		OAuth2RedirectUrl:        fromStringConfigValue(cfg.oauth2RedirectUrl),
-		Layout:                   fromStringConfigValue(cfg.oauth2RedirectUrl),
-		ValidatorURL:             fromStringConfigValue(cfg.validatorUrl),
-		MaxDisplayedTags:         fromIntConfigValue(cfg.maxDisplayedTags),
-		PrimaryURL:               fromStringConfigValue(cfg.urlsPrimary),
-		URLs:                     urlsAsBase64EncodedJSON,
-	})
-}
-
-func fromStringConfigValue(v configValue[string]) string {
-	if v.IsSet {
-		return strings.ReplaceAll(v.Value, "\n", "\\n")
-	}
-
-	return ""
-}
-
-func fromDocExpansionConfigValue(v configValue[DocExpansion]) string {
-	if v.IsSet {
-		return string(v.Value)
-	}
-
-	return ""
-}
-
-func fromModelRenderingConfigValue(v configValue[ModelRendering]) string {
-	if v.IsSet {
-		return string(v.Value)
-	}
-
-	return ""
-}
-
-func fromIntConfigValue(v configValue[int]) string {
-	if v.IsSet {
-		return fmt.Sprintf("%d", v.Value)
-	}
-
-	return ""
-}
-
-func fromBoolConfigValue(v configValue[bool]) string {
-	if v.IsSet {
-		return strconv.FormatBool(v.Value)
-	}
-
-	return ""
-}
-
 func readSpecFile(path string) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -203,7 +126,7 @@ func readSpecFile(path string) ([]byte, error) {
 
 	data, err := io.ReadAll(file)
 	if err != nil {
-		return nil, fmt.Errorf("error reading spec file: %w", err)
+		return nil, fmt.Errorf("error reading Spec file: %w", err)
 	}
 
 	return data, nil
@@ -219,17 +142,4 @@ func getContentType(fileName string, content []byte) string {
 	}
 
 	return contentType
-}
-
-func marshalObject(v any) (string, error) {
-	if v == nil {
-		return "", nil
-	}
-
-	b, err := json.Marshal(v)
-	if err != nil {
-		return "", fmt.Errorf("cannot marshal object: %w", err)
-	}
-
-	return base64.StdEncoding.EncodeToString(b), nil
 }

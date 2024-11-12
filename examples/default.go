@@ -2,15 +2,27 @@ package main
 
 import (
 	"fmt"
-	swaggerui "github.com/alexliesenfeld/go-swagger-ui"
 	"log"
 	"net/http"
+
+	swaggerui "github.com/alexliesenfeld/go-swagger-ui"
 )
 
 func main() {
 	http.HandleFunc("/", swaggerui.NewHandler(
 		swaggerui.WithHTMLTitle("My Example Petstore API"),
-		swaggerui.WithSpecURL("https://petstore.swagger.io/v2/swagger.json"),
+		swaggerui.WithSpecURLs("v1",
+			[]swaggerui.SpecURL{
+				{
+					Name: "v1",
+					URL:  "http://[::]/docs/swagger/hello_world_api.swagger.json",
+				},
+				{
+					Name: "v2",
+					URL:  "http://[::]/docs/swagger/hello_world_api_v2.swagger.json",
+				},
+			},
+		),
 		swaggerui.WithDocExpansion(swaggerui.DocExpansionFull),
 	))
 
