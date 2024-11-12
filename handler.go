@@ -121,7 +121,7 @@ func replaceVars(w io.Writer, tpl *template.Template, cfg *uiConfig) error {
 		DefaultModelRendering, QueryConfigEnabled, SupportedSubmitMethods, DeepLinking,
 		ShowMutatedRequest, ShowExtensions, ShowCommonExtensions, Filter, FilterString,
 		DisplayOperationId, TryItOutEnabled, DisplayRequestDuration, PersistAuthorization, WithCredentials,
-		OAuth2RedirectUrl, Layout, ValidatorURL, MaxDisplayedTags, PrimaryURL, ConfigURL, URLs string
+		OAuth2RedirectUrl, Layout, ValidatorURL, MaxDisplayedTags, PrimaryURL, ConfigURL, URLs, Plugins string
 	}{
 		BasePath:                 cfg.basePath,
 		ConfigURL:                fromStringConfigValue(cfg.configURL),
@@ -146,11 +146,12 @@ func replaceVars(w io.Writer, tpl *template.Template, cfg *uiConfig) error {
 		PersistAuthorization:     fromBoolConfigValue(cfg.persistAuthorization),
 		WithCredentials:          fromBoolConfigValue(cfg.withCredentials),
 		OAuth2RedirectUrl:        fromStringConfigValue(cfg.oauth2RedirectUrl),
-		Layout:                   fromStringConfigValue(cfg.oauth2RedirectUrl),
+		Layout:                   fromStringConfigValue(cfg.layout),
 		ValidatorURL:             fromStringConfigValue(cfg.validatorUrl),
 		MaxDisplayedTags:         fromIntConfigValue(cfg.maxDisplayedTags),
 		PrimaryURL:               fromStringConfigValue(cfg.urlsPrimary),
 		URLs:                     urlsAsBase64EncodedJSON,
+		Plugins:                  strings.TrimSpace(strings.Join(cfg.plugins, ",")),
 	})
 }
 

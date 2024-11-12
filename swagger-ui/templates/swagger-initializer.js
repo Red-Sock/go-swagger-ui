@@ -9,7 +9,9 @@ window.onload = function() {
       SwaggerUIStandalonePreset
     ],
     plugins: [
-      SwaggerUIBundle.plugins.DownloadUrl
+      SwaggerUIBundle.plugins.DownloadUrl,
+      SwaggerUIBundle.plugins.TopBar,
+        // ...blankToPluginList('{{ .Plugins }}'),
     ],
     configUrl: blankToUndefined('{{ .ConfigURL }}'),
     spec: parseJson(decodeBase64(blankToUndefined('{{ .Spec }}'))),
@@ -108,5 +110,24 @@ function parseJson(str) {
   }
 
   return JSON.parse(str);
+}
+
+function blankToPluginList(list) {
+  const pluginNames = blankToUndefinedArray(list)
+  if (!pluginNames) {
+    return []
+  }
+
+  const plugins = []
+
+  for (const i in pluginNames) {
+
+    switch (pluginNames[i]) {
+      case 'SwaggerUIBundle.plugins.TopBar':
+        plugins.push(SwaggerUIBundle.plugins.TopBar)
+    }
+  }
+
+  return plugins
 }
 

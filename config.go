@@ -37,6 +37,7 @@ type uiConfig struct {
 	oauth2RedirectUrl        configValue[string]
 	maxDisplayedTags         configValue[int]
 	validatorUrl             configValue[string]
+	plugins                  []string
 }
 
 type DocExpansion string
@@ -71,6 +72,10 @@ type SpecURL struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
 }
+
+var (
+	PluginTopBar = "SwaggerUIBundle.plugins.TopBar"
+)
 
 // Option is a function that takes a pointer to uiConfig and modifies it.
 type Option func(*uiConfig)
@@ -336,5 +341,13 @@ func WithConfigURL(configURL string) Option {
 func WithBasePath(basePath string) Option {
 	return func(cfg *uiConfig) {
 		cfg.basePath = strings.TrimSuffix(basePath, "/") + "/"
+	}
+}
+
+// WithPlugins adds plugins to config.
+// For now only PluginTopBar is supported
+func WithPlugins(plugins ...string) Option {
+	return func(config *uiConfig) {
+		config.plugins = append(config.plugins, plugins...)
 	}
 }
